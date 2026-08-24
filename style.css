@@ -7,16 +7,24 @@
 	--menu-paper: #e00000;
 }
 
-html, body {
+html {
 	width: 100%;
-	max-width: 1000px;
-	padding: 16px 16px;
-	margin: 0 auto;
 	box-sizing: border-box;
 	background: var(--paper);
+}
+
+body {
+	width: 100%;
+	max-width: 1000px;
+	padding: 16px;
+	margin: 0 auto;
+	
+	background: var(--paper);
 	color: var(--text);
-	/* font: 16px "Courier New", Courier, monospace; */
+	
 	font-family: 'Inter', sans-serif;
+	font-size: 16px;
+	line-height: 1.5;
 }
 
 body {
