@@ -88,25 +88,25 @@
 		
 		<p>No 8086, isto era perfeitamente racional:</p>
 		
-		<pre>
-			mov cx, 100
-		again:
-			; ...
-			
-			loop again
-		</pre>
+<pre>
+		mov cx, 100
+	again:
+		; ...
+		
+		loop again
+</pre>
 		
 		<p>O Intel 8086 Family User's Manual diz que:
 		
-		<pre>
-		INSTRUÇÃO        CLOCKS
-		---------        ------
-		 LOOP             17 + m
-		 DEC CX           2
-		 JNZ addr         16 + m
-
-		 DEC CX + JNZ     18 clocks + m
-		</pre>
+<pre>
+	INSTRUÇÃO        CLOCKS
+	---------        ------
+	 LOOP             17 + m
+	 DEC CX           2
+	 JNZ addr         16 + m
+	 
+	 DEC CX + JNZ     18 clocks + m
+</pre>
 		
 		<p>Além disso, <code>loop again</code> tem 2 bytes, enquanto
 		<code>DEC CX + JNZ again</code> tem 3 bytes. Ou seja: no 8086
@@ -115,26 +115,26 @@
 		
 		<p>No 386 a situação se inverte:</p>
 		
-		<pre>
-			mov ecx, 100
-		again:
-			; ...
-			
-			dec ecx
-			jnz again
-		</pre>
+<pre>
+		mov ecx, 100
+	again:
+		; ...
+		
+		dec ecx
+		jnz again
+</pre>
 		
 		O 386 dá:
 		
-		<pre>
-		INSTRUÇÃO        CLOCKS
-		---------        ------
-		 LOOP             11 + m
-		 DEC ECX          2
-		 JNZ addr         7 + m
-		
-		 DEC ECX -> JNZ   9 + m
-		</pre>
+<pre>
+	INSTRUÇÃO        CLOCKS
+	---------        ------
+	 LOOP             11 + m
+	 DEC ECX          2
+	 JNZ addr         7 + m
+	
+	 DEC ECX -> JNZ   9 + m
+</pre>
 		
 		<p>Diferença de 2 clocks por iteração (11 do LOOP - 9 do DEC/JNZ).</p>
 		
@@ -148,10 +148,10 @@
 		No nosso caso, isso não atrapalha a comparação, visto que ambos os
 		casos saltam para a mesma instrução:
 		
-		<pre>
-		LOOP        = 11 + m
-		DEC/JNZ     = 9 + m
-		</pre>
+<pre>
+	LOOP        = 11 + m
+	DEC/JNZ     = 9 + m
+</pre>
 		
 		<p>Logo, exatamente 2 clocks de vantagem para <code>DEC/JNZ</code> no
 		caminho tomado.</p>
