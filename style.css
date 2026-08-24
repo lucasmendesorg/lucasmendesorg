@@ -9,15 +9,12 @@
 
 html {
 	width: 100%;
-	box-sizing: border-box;
-	background: var(--paper);
 }
 
 body {
-	width: 100%;
 	max-width: 1000px;
-	padding: 16px;
 	margin: 0 auto;
+	padding: 16px;
 	box-sizing: border-box;
 	
 	background: var(--paper);
