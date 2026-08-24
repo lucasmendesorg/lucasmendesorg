@@ -10,13 +10,13 @@
 html, body {
 	width: 100%;
 	max-width: 1000px;
-	padding-top: 8px;
-	padding-bottom: 8px;
+	padding: 8px;
 	margin: 0 auto;
 	box-sizing: border-box;
 	background: var(--paper);
 	color: var(--text);
-	font: 16px "Courier New", Courier, monospace;
+	/* font: 16px "Courier New", Courier, monospace; */
+	font-family: 'Inter', sans-serif;
 }
 
 body {
