@@ -16,8 +16,120 @@
 			<a href="mailto:l@lucasmendes.org">Contact</a>
 		<hr>
 		
+		<h3>O endereçamento do 386 é uma revolução</h3>
+		
+		<p style="text-align: right;">
+			<i>Segunda, 2:53pm, 24 de Agosto de 2026.</i>
+		</p>
+		
+		<p>Além do novo modelo de registradores realmente de 32 bits, os
+		endereços eram extremamente restritos no 8086. Essencialmente eram
+		necessárias combinações com <code>[bx]</code>, <code>[bp]</code>,
+		<code>[si]</code> e <code>[di]</code>:</p>
+<pre>
+	mov word [bx + si], ax
+	mov byte [bx + di], al
+	
+	mov word [bp + si], ax
+	mov byte [bp + di], al
+	
+	mov byte [bx + si + offset], al
+</pre>
+		<p>Não era permitido simplesmente usar <code>[ax + cx]</code>, por
+		exemplo; muito menos <code>[ax + bx + 4 + 123]</code>. Foi
+		justamente no 386 que surgiu o modelo:</p>
+<pre>
+	base + index * scale + offset
+</pre>
+		<p>Com as escalas permitidas sendo 1, 2, 4 ou 8. Isso permite
+		operações sofisticadas de endereçamento numa única instrução, como
+		por exemplo:</p>
+<pre>
+	mov eax, [esi + ecx * 8 + 444]
+	mov ebx, [esi + ecx * 4 + 333]
+	mov ecx, [esi + ecx * 2 + 222]
+	mov edx, [esi + ecx * 1 + 222]	; O mesmo que mov edx, [esi + ecx + 222]
+</pre>
+		<p>E o próprio manual do 386 diz explicitamente que a multiplicação
+		do índice por 2, 4 ou 8 é feita durante o cálculo do endereço sem
+		perda de performance, o que transforma completamente a maneira de
+		percorrer arrays e estruturas. Por exemplo, no 8086 faríamos:
+		</p>
+<pre>
+		mov si, array
+		mov cx, count
+	again:
+		mov ax, [si]	; Poderia ser substituído por LODSW
+		add si, 2		;
+		loop again
+</pre>
+		<p>Já no 386, é possível fazer diferente, já que o índice lógico
+		pode ser convertido no endereço físico do elemento pelo próprio
+		modelo de endereçamento:</p>
+<pre>
+		mov ecx, count
+	again:
+		mov eax, [array + ecx * 2 + 8]
+		; ...
+		dec ecx
+		jnz again
+</pre>
+		<p>
+		Esse avanço no ISA (Instruction Set Architecture) no que diz
+		respeito ao modelo de endereçamento também torna o <code>LEA</code>
+		muito mais poderoso, já que no 8086, o <code>LEA</code> era
+		basicamente uma ferramenta de cálculo de endereço com as limitações
+		do modelo de endereçamento do 8086. Já no 386, ele pode até mesmo
+		ser utilizado para operações aritméticas:
+		</p>
+<pre>
+	lea eax, [eax + eax]			; Produz efetivamente EAX *= 2
+	
+	lea eax, [eax + eax * 2]		; EAX *= 3
+	
+	lea eax, [eax * 4]				; EAX *= 4
+	
+	lea eax, [eax + eax * 4]		; EAX *= 5
+	
+	lea eax, [eax * 8]				; EAX *= 8
+	
+	lea eax, [eax + eax * 8]		; EAX *= 9
+	
+	lea eax, [eax * 4 + 5]			; EAX = EAX * 4 + 5
+	
+	lea eax, [eax + eax * 8 + 10]	; EAX = EAX * 9 + 10
+</pre>
+		<p>Também é possível combinar duas ou mais instruções
+		<code>LEA</code> para alcançar multiplicações por outros fatores,
+		como 6, 7, 10, etc.:</p>
+		
+		<p>Por 6:</p>
+<pre>
+	mov eax, 6
+	lea eax, [eax + eax * 2]	; EAX = EAX * 3
+	lea eax, [eax + eax]		; EAX = EAX + EAX
+	
+	; EAX agora é 36 (EAX * 6)
+</pre>
+		<p>Por 10:</p>
+<pre>
+	mov eax, 5
+	lea eax, [eax + eax * 4]	; EAX = EAX * 5
+	lea eax, [eax + eax]		; EAX = EAX + EAX
+	
+	; EAX agora é 50
+</pre>
+		<p>Essa classe inteira de idiomatismos simplesmente não existia no
+		8086.</p>	
+		
+		<p>&nbsp;</p>
+		
 		<h3>As mudanças do 8086 para o 386 foram muito maiores do que
 		simplesmente trocar AX por EAX</h3>
+		
+		<p style="text-align: right;">
+			<i>Domingo, 11:49pm, 23 de Agosto de 2026.</i>
+		</p>
 		
 		<p>Longe do escopo deste texto, apenas um desabafo: C++ é uma
 		linguagem horrível. E digo isso com pesar, visto que programei C++
@@ -96,7 +208,7 @@
 		loop again
 </pre>
 		
-		<p>O Intel 8086 Family User's Manual diz que:
+		<p>O Intel 8086 Family User's Manual diz que:</p>
 		
 <pre>
 	INSTRUÇÃO        CLOCKS
@@ -111,7 +223,7 @@
 		<p>Além disso, <code>loop again</code> tem 2 bytes, enquanto
 		<code>DEC CX + JNZ again</code> tem 3 bytes. Ou seja: no 8086
 		<code>LOOP</code> é simultaneamente menor e ligeiramente mais
-		rápido</p>
+		rápido.</p>
 		
 		<p>No 386 a situação se inverte:</p>
 		
@@ -124,7 +236,7 @@
 		jnz again
 </pre>
 		
-		O 386 dá:
+		<p>O 386 dá:</p>
 		
 <pre>
 	INSTRUÇÃO        CLOCKS
@@ -145,8 +257,8 @@
 		immediate inteiro conta como outro e os demais bytes/prefixos contam
 		individualmente.</p>
 		
-		No nosso caso, isso não atrapalha a comparação, visto que ambos os
-		casos saltam para a mesma instrução:
+		<p>No nosso caso, isso não atrapalha a comparação, visto que ambos os
+		casos saltam para a mesma instrução:</p>
 		
 <pre>
 	LOOP        = 11 + m
@@ -164,14 +276,10 @@
 		principalmente, conseguem testar um <code>ZF</code> produzido por uma
 		instrução anterior sem destruí-lo.</p>
 		
-		E existe uma outra sutileza muito 386: <code>LOOP</code> escolhe CX
-		ou ECX pelo address size (use16 ou use32, modo real ou modo
-		protegido), não pelo operand size. Em código de 32 bits, ele
-		naturalmente usa ECX, enquanto em código de 16 bits, ele usa CX.
-		
-		<p style="text-align: right;">
-			<i>Domingo, 11:49pm, 23 de Agosto de 2026.</i>
-		</p>
+		<p>E existe uma outra sutileza muito 386: <code>LOOP</code> escolhe CX
+		ou ECX pelo address size attribute (use16 ou use32), não pelo operand
+		size. Em código de 32 bits, ele naturalmente usa ECX, enquanto em
+		código de 16 bits, ele usa CX.</p>
 	</div>
 </body>
 </html>
