@@ -1,50 +1,7 @@
-<!doctype html>
-<html lang="pt-BR">
+<html>
 <head>
-	<meta charset="utf-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<title>Lucas Mendes</title>
-	<style>
-		:root {
-			--text: #111;
-			--muted: #666;
-			--line: #d8d8d8;
-			--link: #5a2ca0;
-			--paper: #ffffff;
-			--menu-paper: #e00000;
-		}
-
-		html, body {
-			margin: 0;
-			padding: 0;
-			background: var(--paper);
-			color: var(--text);
-			font: 16px "Courier New", Courier, monospace;
-		}
-
-		body {
-			min-height: 100vh;
-			background: var(--paper);
-		}
-		
-		a {
-			color: var(--link);
-			text-decoration: none;
-		}
-
-		a:hover {
-			text-decoration: underline;
-		}
-		
-		.site {
-			width: 100%;
-			max-width: 1024px;
-			padding-top: 8px;
-			padding-bottom: 8px;
-			margin: 0 auto;
-			box-sizing: border-box;
-		}
-	</style>
+	<link rel="stylesheet" href="style.css">
 </head>
 <body>
 	<div class="site">
@@ -57,8 +14,162 @@
 			<a href="mailto:l@lucasmendes.org">Contact</a>
 		<hr>
 		
-		<p>
-			It works!
+		<h3>As mudanças do 8086 para o 386 foram muito maior do que
+		simplesmentes trocar AX por EAX</h3>
+		
+		<p>Longe do escopo deste texto, apenas um desabafo: C++ é uma
+		linguagem horrível. E digo isso com pesar, visto que programei C++
+		por longos anos, até que um ano atrás decidi que não implementaria
+		mais nenhum projeto pessoal usando isso. C foi a escolha mais
+		natural e, após a implementação do último game engine ao vivo em
+		lives, no ano passado, tomei mais uma decisão quanto ao próximo
+		projeto: esse será em assembly, como nos velhos tempos. E escrevendo
+		as primeiras linhas, trabalhando na biblioteca base com funções para
+		agilizar o dia a dia, lembrei de como certos detalhes denunciam a
+		evolução da ISA (Instruction Set Architecture), versão após versão
+		das CPUs, como do 8086 para o 286, para então o 386 e por aí vai.
+		Decidi escrever algumas coisas sobre isso e este é o primeiro
+		texto.</p>
+		
+		<p>Lançado pela Intel em 1985, o 386 marcou uma das maiores mudanças
+		na históiria da arquitetura x86. Mais do que uma evolução do 286,
+		ele estabeleceu a base do que viria a ser conhecido como IA-32,
+		ampliando os principais registradores de 16 para 32 bits e
+		permitindo trabalhar naturalmente com valores e endereços do mesmo
+		tamanho. Registradores como AX, BX, CX e DX passaram a ter suas
+		versões estendidas EAX, EBX, ECX e EDX, assim como SI, DI BP e SP
+		deram origem a ESI, EDI, EBP e ESP. Essa ampliação aumentou
+		enormemente a capacidade de manipular grandes estruturas de dados e
+		espaços de memória sem recorrer aos segmentos que marcaram o dia a
+		dia de quem programou os processadores anteriores.</p>
+		
+		<p>Além de transformar o endereçamento de memória (no 8086, apenas
+		determinadas combinações entre BX, BP, SI e DI eram permitidas na
+		formação de endereços), graças ao 386 podemos combinar praticamente
+		qualquer registrador de proposito geral como base ou índice, além de
+		multiplicar índices por 1, 2, 4 ou 8, como vamos ver mais adiante, e
+		acrescentar um deslocamento. Outra inovação decisiva foi a
+		possibilidade de trabalhar com um espaço linear de endereçamento de
+		até 4 GB. O 386 manteve a segmentação herdada das gerações
+		anteriores, mas permitiu segmentos muito maiores e acrescentou
+		paginação à arquitetura. Com isso, tornou-se possível construir
+		sistemas operacionais com memória virtual, isolamento entre
+		processos e proteção de páginas. O chamado modelo de memória plana
+		(flat memory), no qual diferentes segmentos são configurados para
+		abranger o mesmo espaço linear, tornou-se posteriormente a forma
+		dominante de utilizar a arquitetura em sistemas de 32 bits.</p>
+		
+		<p>Mesmo assim, o 386 manteve uma característica fundamental da
+		família x86: compatibilidade com software anterior. Ele continuava
+		capaz de executar código escrito para o 8086 e seus sucessores,
+		mesmo acrescentando modos de operação muito mais sofisticados. Seu
+		modo protegido de 32 bits oferecia quatro níveis de provilégio (ring
+		0, 1, 2 e 3), proteção de memória e mecanismos apropriados de
+		multitarefa (mesmo que estes tenham sido abandonados pelos sistemas
+		operacionais pouco depois, por se provar desnecessariamente lento),
+		enquanto o modo Virtual 8086 permitia executar software compatível
+		com 8086 dentro de um sistema protegido (isso foi utilizado pelo
+		Windows 3.1, Windows 9x e Windows NT de 32 bits por décadas, para
+		executar software para MS-DOS e Windows 3.1 nos Windows
+		posteriores). Essa combinação de compatibilidade e expansão
+		arquitetural foi uma das razões para a longevidade do x86.
+		</p>
+		
+		<p>Mas além disso, o 386 representou uma mudança muito mais
+		profunda: ele acrescentou instruções que eliminavam vários
+		idiomatismos do 8086 e, curiosamente, mudou até quais sequências
+		de instrucões são mais rápidas, como vamos ver com o LOOP versus
+		DEC/JNZ logo a seguir.
+		</p>
+		
+		<h3>LOOP -> DEC/JNZ: a inversão acontece no 386</h3>
+		
+		<p>No 8086, isto era perfeitamente racional:</p>
+		
+		<pre>
+			mov cx, 100
+		again:
+			; ...
+			
+			loop again
+		</pre>
+		
+		<p>O Intel 8086 Family User's Manual diz que:
+		
+		<pre>
+		INSTRUÇÃO        CLOCKS
+		---------        ------
+		 LOOP             17 + m
+		 DEC CX           2
+		 JNZ addr         16 + m
+
+		 DEC CX + JNZ     18 clocks
+		</pre>
+		
+		<p>Além disso, <code>loop again</code> tem 2 bytes, enquanto
+		<code>DEC CX + JNZ again</code> tem 3 bytes. Ou seja: no 8086
+		<code>LOOP</code> é simultaneamente menor e ligeiramente mais
+		rápido</p>
+		
+		<p>No 386 a situação se inverte:</p>
+		
+		<pre>
+			mov ecx, 100
+		again:
+			; ...
+			
+			dec ecx
+			jnz again
+		</pre>
+		
+		O 386 dá:
+		
+		<pre>
+		INSTRUÇÃO        CLOCKS
+		---------        ------
+		 LOOP             11 + m
+		 DEC ECX          2
+		 JNZ addr         7 + m
+		
+		 DEC ECX -> JNZ   9 + m
+		</pre>
+		
+		<p>Diferença de 2 clocks por interação (11 do LOOP - 9 do
+		DEC/JNZ).</p>
+		
+		<p>E aquele famigerado <code>m</code> das tabelas da Intel tem
+		definição exata: é o número de componentes da próxima instrução
+		executada que o 386 precisa buscar (fetch) após a transferência
+		de controle. Um displacement inteiro conta como um componente, um
+		immediate inteiro conta como outro e os demais bytes/prefíxos contam
+		individualmente.</p>
+		
+		No nosso caso, isso não atrapalha a comparação, visto que ambos os
+		casos saltam para a mesma instrução:
+		
+		<pre>
+		LOOP        = 11 + m
+		DEC/JNZ     = 9 + m
+		</pre>
+		
+		<p>Logo, exatamente 2 clocks de vantagem para <code>DEC/JNZ</code> no
+		caminho tomado.</p>
+		
+		<p>Há, porém, uma diferença semântica importante: <code>LOOP
+		addr</code> não altera flag alguma, enquanto <code>DEC ECX</code>
+		altera <code>OF</code>, <code>SF</code>, <code>ZF</code>,
+		<code>AF</code> e <code>PF</code>, embora preserve CF. Logo, não é
+		uma substituição universal: <code>LOOPE</code> e <code>LOOPNE</code>,
+		principalmente, conseguem testar um <code>ZF</code> produzido por uma
+		instrução anterior sem destruí-lo.</p>
+		
+		E existe uma outra sutileza muito 386: <code>LOOP</code> escolhe CX
+		ou ECX pelo address size (use16 ou use32, modo real ou modo
+		protegido), não pelo operand size. Em código de 32 bits, ele
+		naturalmente usa ECX, enquanto em código de 16 bits, ele usa CX.
+		
+		<p style="text-align: right;">
+			<i>Domingo, 11:49pm, 23 de Agosto de 2023.</i>
 		</p>
 	</div>
 </body>

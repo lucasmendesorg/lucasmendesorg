@@ -1,0 +1,40 @@
+:root {
+	--text: #111;
+	--muted: #666;
+	--line: #d8d8d8;
+	--link: #5a2ca0;
+	--paper: #ffffff;
+	--menu-paper: #e00000;
+}
+
+html, body {
+	width: 100%;
+	max-width: 1000px;
+	padding-top: 8px;
+	padding-bottom: 8px;
+	margin: 0 auto;
+	box-sizing: border-box;
+	background: var(--paper);
+	color: var(--text);
+	font: 16px "Courier New", Courier, monospace;
+}
+
+body {
+	min-height: 100vh;
+	background: var(--paper);
+}
+
+a {
+	color: var(--link);
+	text-decoration: none;
+}
+
+a:hover {
+	text-decoration: underline;
+}
+
+pre {
+	background-color: #f0f0f0;
+	padding: 8px;
+	border-radius: 8px;
+}
